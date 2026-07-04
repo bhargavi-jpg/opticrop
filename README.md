@@ -133,11 +133,8 @@ _Add screenshots of the Recommend, Compare, Dashboard, and Research Insights pag
 
 | Name | Role |
 |---|---|
-| Faseeha Iffat Shaik | Team Lead |
-| Jahnavi Jampani | Member |
-| Manoj Praveen Bejawada | Member |
-| Evuri Bhargavi | Member |
-| Sai Harshith Myla | Member |
+| Bhargavi | Team Member |
+| Manoj Praveen Bejawada | Team Member |
 
 ## 📄 License
 
