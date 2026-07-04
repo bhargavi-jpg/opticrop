@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiCrop | Smart Crop Recommendation</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-dark bg-success navbar-expand">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1">🌱 OptiCrop</span>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="/">Recommend</a>
+                <a class="nav-link" href="/compare">Compare Crops</a>
+                <a class="nav-link" href="/dashboard">Dashboard</a>
+                <a class="nav-link" href="/research">Research Insights</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <h4 class="card-title mb-1">Enter Soil & Environmental Details</h4>
+                                <p class="text-muted mb-0">We'll recommend the best crop for these conditions.</p>
+                            </div>
+                            <button type="button" id="weatherBtn" class="btn btn-sm btn-outline-success">📍 Use My Location's Weather</button>
+                        </div>
+                        <p id="weatherStatus" class="small text-muted mt-2 mb-3"></p>
+
+                        {% if error %}
+                        <div class="alert alert-danger">{{ error }}</div>
+                        {% endif %}
+
+                        <form action="/predict" method="POST" novalidate>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">Nitrogen (N) <span class="text-muted small">0-300</span></label>
+                                    <input type="number" step="any" class="form-control" name="N" placeholder="e.g. 90" value="{{ prev.N if prev else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Phosphorous (P) <span class="text-muted small">0-300</span></label>
+                                    <input type="number" step="any" class="form-control" name="P" placeholder="e.g. 42" value="{{ prev.P if prev else '' }}" required>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Potassium (K) <span class="text-muted small">0-300</span></label>
+                                    <input type="number" step="any" class="form-control" name="K" placeholder="e.g. 43" value="{{ prev.K if prev else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Temperature (°C) <span class="text-muted small">-10 to 60</span></label>
+                                    <input type="number" step="any" class="form-control" id="temperature" name="temperature" placeholder="e.g. 20.9" value="{{ prev.temperature if prev else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Humidity (%) <span class="text-muted small">0-100</span></label>
+                                    <input type="number" step="any" class="form-control" id="humidity" name="humidity" placeholder="e.g. 82.0" value="{{ prev.humidity if prev else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Soil pH <span class="text-muted small">0-14</span></label>
+                                    <input type="number" step="any" class="form-control" name="ph" placeholder="e.g. 6.5" value="{{ prev.ph if prev else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Rainfall (mm) <span class="text-muted small">0-500 &middot; 7-day forecast total if auto-filled</span></label>
+                                    <input type="number" step="any" class="form-control" id="rainfall" name="rainfall" placeholder="e.g. 202.9" value="{{ prev.rainfall if prev else '' }}" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100 mt-4 py-2">Recommend Crop</button>
+                        </form>
+                    </div>
+                </div>
+                <p class="text-center text-muted mt-3 small">Model: Random Forest Classifier &middot; Trained on 2200 samples across 22 crops</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('weatherBtn').addEventListener('click', function () {
+            const status = document.getElementById('weatherStatus');
+            if (!navigator.geolocation) {
+                status.textContent = "Location access isn't supported in this browser. Please enter values manually.";
+                return;
+            }
+            status.textContent = "Getting your location...";
+            navigator.geolocation.getCurrentPosition(async function (pos) {
+                const { latitude, longitude } = pos.coords;
+                status.textContent = "Fetching current weather...";
+                try {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m&daily=precipitation_sum&forecast_days=7&timezone=auto`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const temp = data.current.temperature_2m;
+                    const humidity = data.current.relative_humidity_2m;
+                    const rainfallWeek = data.daily.precipitation_sum.reduce((a, b) => a + b, 0);
+
+                    document.getElementById('temperature').value = temp;
+                    document.getElementById('humidity').value = humidity;
+                    document.getElementById('rainfall').value = rainfallWeek.toFixed(1);
+
+                    status.textContent = `Filled from live weather: ${temp}°C, ${humidity}% humidity, ${rainfallWeek.toFixed(1)}mm rain (7-day total). Adjust rainfall if you know your local seasonal average.`;
+                } catch (e) {
+                    status.textContent = "Couldn't fetch weather data. Please enter values manually.";
+                }
+            }, function () {
+                status.textContent = "Location permission denied. Please enter values manually.";
+            });
+        });
+    </script>
+</body>
+</html>
