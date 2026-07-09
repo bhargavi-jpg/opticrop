@@ -21,4 +21,8 @@
 _Add screenshots of each page here before final submission (Recommend, Result, Compare, Dashboard, Research Insights)._
 
 ## Demo Video
+<<<<<<< HEAD
 🔗 [Watch the demo video](https://drive.google.com/file/d/1yeN15cDrYprdvD-Q7UIaxjFENMmCRgyf/view?usp=drive_link)
+=======
+_Add a screen-recording link here if required by your evaluation (e.g. Google Drive/YouTube unlisted link)._
+>>>>>>> 4b42b99eeda7980f08693bd961256bdf9e9d8bdb
